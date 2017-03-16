@@ -435,9 +435,9 @@ class Kmeans(Cluster):
         dt = np.dtype([('ID',np.int),('dist',np.float32)])
         combinedSets = []
         # cal the necessary dist info, and combine it with the corresponding ID.
-        for clt_index in xrange(cluster_num):
+        for clt_index in xrange(self.cluster_num):
             centroid = self.centroids[clt_index]
-            combinedSet = np.empty(shape=self.clusterIDSets[clt_index],dtype=dt)
+            combinedSet = np.empty(shape=self.clusterIDSets[clt_index].shape,dtype=dt)
             cnt = 0
             for dot,ID in zip(self.clusterDotSets[clt_index],self.clusterIDSets[clt_index]):
                 dist = calDist(centroid,dot)
@@ -445,7 +445,7 @@ class Kmeans(Cluster):
                 cnt += 1
             combinedSets.append(combinedSet)
         # sort by dist
-        for clt_index in xrange(cluster_num):
+        for clt_index in xrange(self.cluster_num):
             combinedSets[clt_index] = np.sort(combinedSets[clt_index],order='dist')
         self.sortCombinedSets = combinedSets
 
@@ -455,7 +455,7 @@ class Kmeans(Cluster):
         You will get a dir(dir_path) which contains '%d' % cluster_num files that contains corresponding dot names
         belonging to some cluster-category sorted by dist.
         """
-        assert 'sortCombinedSets' in self.keys(), 'You should do SORT_BY_DIST method first!'
+        assert hasattr(self,'sortCombinedSets'), 'You should do SORT_BY_DIST method first!'
         if not os.path.exists(dir_path):
             os.mkdir(dir_path)
         for index in xrange(self.cluster_num):
