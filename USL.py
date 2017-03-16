@@ -148,13 +148,12 @@ class Cluster(USL):
     def cluster(self):
         raise NotImplementedError
 
-    def saveresult(self,dir_path):
+    def saveResult(self,dir_path):
         """
         Save the cluster procedure's result.
-        You will get a dir(./cluster_result/) which contains '%d' % cluster_num files that contains corresponding dot names
+        You will get a dir(dir_path) which contains '%d' % cluster_num files that contains corresponding dot names
         belonging to some cluster-category.
         """
-        #dir_path = './cluster_result_c%d' % (self.cluster_num)
         if not os.path.exists(dir_path):
             os.mkdir(dir_path)
         for index in xrange(self.cluster_num):
@@ -431,6 +430,40 @@ class Kmeans(Cluster):
         self.clusterID = clusterID
         # end
 
+    def sortByDist(self):
+        assert self.cluster_num > 0, 'You should do CLUSTER method first!'
+        dt = np.dtype([('ID',np.int),('dist',np.float32)])
+        combinedSets = []
+        # cal the necessary dist info, and combine it with the corresponding ID.
+        for clt_index in xrange(cluster_num):
+            centroid = self.centroids[clt_index]
+            combinedSet = np.empty(shape=self.clusterIDSets[clt_index],dtype=dt)
+            cnt = 0
+            for dot,ID in zip(self.clusterDotSets[clt_index],self.clusterIDSets[clt_index]):
+                dist = calDist(centroid,dot)
+                combinedSet[cnt] = (ID,dist)
+                cnt += 1
+            combinedSets.append(combinedSet)
+        # sort by dist
+        for clt_index in xrange(cluster_num):
+            combinedSets[clt_index] = np.sort(combinedSets[clt_index],order='dist')
+        self.sortCombinedSets = combinedSets
+
+    def saveSortedResult(self,dir_path):
+        """
+        Save the sortByDist procedure's result.
+        You will get a dir(dir_path) which contains '%d' % cluster_num files that contains corresponding dot names
+        belonging to some cluster-category sorted by dist.
+        """
+        assert 'sortCombinedSets' in self.keys(), 'You should do SORT_BY_DIST method first!'
+        if not os.path.exists(dir_path):
+            os.mkdir(dir_path)
+        for index in xrange(self.cluster_num):
+            with open(os.path.join(dir_path,'sorted_%d.txt'%index),'w+') as f:
+                for item in self.sortCombinedSets[index]:
+                    f.write(self.name[item[0]] + '\n')
+
+
 from math import log,pi
 class Xmeans(Kmeans):
     def __init__(self):
@@ -513,6 +546,13 @@ class PCA(USL):
         1st: preProcess()
         2nd: selectEig(proportion)
         3rd: posProcess(path), where 'path' is the place saving the transed data
+        
+        Object properties:
+        eigVals:
+        eigVecs:
+        eigValProps:
+        selEigVals:
+        selEigVecs:
         """
         super(PCA,self).__init__()
 
