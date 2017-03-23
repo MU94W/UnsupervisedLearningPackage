@@ -52,7 +52,7 @@ class USL(object):
         """
         Parse the file that contains dot names and corresponding features.
         Given file's content is assumed to be written like this:
-        
+
         ---------------FILE CONTENT REGION---------------
         dots_num(int) features_num(int)
         dot_name(str)
